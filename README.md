@@ -105,3 +105,78 @@ Slower computers will have larger deltaTime so your animation interval will be l
 Now the worms should be zooming across the canvas, so switch the random number of speed back to 0.1 to 0.2
 Since this is horizontal movement only, speed is too generic of a name and could apply to vertical or other types of movements as well, so rename speed property in Worm class to vx to signify velocity of x(or even better velocityX)
 Remember to change the variables affected by the calculations using speed as well
+If you reduce the value of enemyInterval (thereby increasing the spawn rate), you should see that the worms are stacked on top of each other regardless of spawn positions
+You want the worms that overlap on the top side to appear as if it is 'behind' the worm at the front, giving it a 3d look in a 2d space
+Currently, we are pushing array items from index 0 to the last index as the items are being added which means they are being added in their index order
+To achieve that 3d effect, you want to tie the position on the y axis of the array to the index order they are being added
+To do this, use the sort method when adding new enemies in the private method, as sort compares the array items with the elements you have added in the function (i.e a,b) and pushing it up or down depending on the conditions you are specify in the callback
+Since we are comparing it on the y axis, the array items that appear higher on the y axis should be first and subsequent ones later (so in an ascending order)
+This means you are returning a.y - b.y
+Child classes are useful because they allow you to give them unique properties that only affect them as stated before
+Now copy and paste the Worm class and change it to Ghost class
+Change the properties accordingly (image = ghost, different sprite width and height etc)
+Ghosts should 'typically' move faster than worms so adjust vx so they become faster
+Now we need to make it so that we push worms or ghosts randomly into the enemies array
+To do this, add a new property in Game called enemyTypes and give it an array with worm and ghost as array items for now
+Now create a variable in the PRIVATE method called randomEnemy and assign enemyTypes with an array of a random enemy type based on its length using Math.random of the length and wrap it with Math.floor since array items do not have decimal places
+Now add a new if condition to check if randomEnemy coincides with the enemy type, push the relevant enemy child class into it
+It makes sense thematically for ghosts to 'fly' on the canvas and for worms to 'slide' across the ground
+So for y in Worm class, you want to deduct the game.height by the height of the sprite to present this effect, removing random method for now
+Now you want the ghosts to take up only the upper portion of the canvas and stay off the ground so you want the y axis to be a random number between the total game height multiplied by like 0.6(60% of the upper canvas)
+Due to this change (worms at the bottom ghosts at the top), the sort method you created before is redundant for now so comment it out
+Remember how javascript would prioritize finding properties and methods from the child class first? You can add a new draw method inside Ghost class which will allow javascript to prioritizing the draw method in Ghost instead of using the draw method in Game class
+Remember how you use the super() method to call for the parent's properties? use it on the new draw method you just created to call for the methods present in the draw function in the parent class
+In this case, since you are calling the draw method, you will employ super.draw() in the draw method
+The original draw method requires an argument of ctx (in Game class under draw method you called for ctx for each object), so pass the required ctx the super.draw() method as well
+You will currently run all the code in your parent class (due to super.draw(ctx)) and any additional methods in draw method inside Ghost should only affect the ghost object (technically)
+To change opacity of an object, you can use the built in globalAlpha method on the canvas and set it to 0.5 for ghosts in draw
+This will cause every object in the canvas to have the property(including the worms)
+To prevent this, use the save and restore method you use previously in the previous projects to save the state of the canvas before you draw and restore it to the original state at the end
+Now that we know we can target and change child classes behaviour, you can go further by changing movement patterns of ghosts
+Create an update method with the same argument of deltaTime inside Ghost class and use super method on the parent update with an argument of deltaTime as well
+\*\* Remember to pass ctx on draw method in Ghost class(I CAUGHT THIS)
+Add a property called angle in Ghost class and set it to 0;
+To create a wavy movement pattern(sine wave), you will increment y axis with the Math.sin method on the angle property;
+Incrementing angle property will let you observe a 'jerky' up down movement of ghost object
+Multiplying Math.sin value by a number will increase the angle
+Incrementing angle by small amounts will let you see a more prominent sine wave pattern
+Changing the values of the multiplied value and increment value of angle will result in different waves
+To randomise this, add a property called curve and randomise from 0 to 3
+Now remove the hardcoded multiplication value in the Math.sin method and use curve instead
+We will now create the final child class, Spider
+Copy and paste the Worm class and change the properties accordingly
+To make it so that spiders spawn only from the top of the canvas, deduct 0 by the height of the sprite in the y axis
+Spiders would only move up and down(no horizontal movement), so set vx(or in my case velocityX) to 0
+Add a new property in Spider class called velocityY and set it to 1
+Add an update method for Spider and super it(with the same arguments)
+Inside this update method, incremennt y axis by velocityY for now
+Add spider as the new array item in enemyTypes and add a new line for the if condition in the PRIVATE method so spider gets pushed into the enemies array randomly as well
+You cannot see the spiders on the canvas because currently, the spiders only move down and they start spawning at the x axis
+To fix this, Set their x position to be a random number between 0 and game width
+To move the spiders up and down, add an if condition in update where if y is above a certain number, incrementally multiply velocityY by negative 1 to pull the spider in the opposite direction
+To give each spider a random length in which it pulls back up, add a new property called maxLength and give it a random number from 0 to the full height of the game
+velocityY is currently hardcoded to 1.
+To give each spider different speed, give velocityY a random number between 0.1 to 0.2
+Multiply the increment in y in update method by deltaTime to get consistency across machines
+Now, we want to create threads for the spiders when dropping down and pulling themselves up with these threads
+Create a draw method for Spider class and super it
+Use the beginPath method on the canvas, moveTo(0, 0) for now, and lineTo() to the positions of the spiders, and stroke the canvas
+Now you should see lines appear at top left corner(0, 0), following each spawned spider
+To make it so that the lines spawn from the original position of the spiders, pass the x position instead of 0 but leave y at 0 in moveTo method
+this.x position is at the top left end of the 'rectangle' of the class, so the lines would appear at the top left position of the spider sprite
+To fix this, add half of the divided width to moveTo and lineTo in the x position
+There is a slight gap between the line and the spider, you can add a number to the y position in lineTo to fill this gap
+Adding properties to Enemy class will be shared across its child classes
+We will now 'animate' the sprites by shuffling through the sprite sheets
+Add a frameX property to Enemy class and set it to 0
+Add a maxFrame property and set it to 5 in Enemy class
+Add frameInterval property and set it to 100 in Enemy
+Add frametimer and set it to 0 in Enemy to accumulate values till frameInterval
+Set a condition in update which needs access to deltaTime to check if frameTimer is more than frameInterval, invoke another condition where if frameX is less than maxFrame, increment frameX, else set frameX and frameTimer back to 0
+Else, increment frameTimer by deltaTime
+To display this in your canvas, you will need to replace sx from 0 to frameX(indicating starting position of the sprite sheet) multiplied by the spriteWidth of the sprite
+Currently the game accumulates spiders forever because they never move pass the x axis since they move up and down the y axis, so markedForDeletion is never true in the parent class
+To fix this, copy that condition(removal of enemies) in Enemy's update and paste it in Spider's update
+Since Spider class objects only move in the y axis, change the condition to if y is less than 0 minus the height multiplied by 2, delete them
+This will make sure that spiders are deleted as they leave the canvas and do not cause the enemies array to keep storing spiders
+Done!

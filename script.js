@@ -10,8 +10,9 @@ document.addEventListener("DOMContentLoaded", function () {
       this.width = width;
       this.height = height;
       this.enemies = [];
-      this.enemyInterval = 1000;
+      this.enemyInterval = 200;
       this.enemyTimer = 0;
+      this.enemyTypes = ["worm", "ghost", "spider"];
     }
     update(deltaTime) {
       this.enemies = this.enemies.filter((object) => !object.markedForDeletion);
@@ -31,7 +32,14 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     #addNewEnemy() {
-      this.enemies.push(new Worm(this));
+      const randomEnemy =
+        this.enemyTypes[Math.floor(Math.random() * this.enemyTypes.length)];
+      if (randomEnemy === "worm") this.enemies.push(new Worm(this));
+      else if (randomEnemy === "ghost") this.enemies.push(new Ghost(this));
+      else if (randomEnemy === "spider") this.enemies.push(new Spider(this));
+      /* this.enemies.sort(function (a, b) {
+        return a.y - b.y;
+      }); */
     }
   }
 
@@ -40,17 +48,28 @@ document.addEventListener("DOMContentLoaded", function () {
       this.game = game;
       //console.log(this.game);
       this.markedForDeletion = false;
+      this.frameX = 0;
+      this.maxFrame = 5;
+      this.frameInterval = 100;
+      this.frameTimer = 0;
     }
     update(deltaTime) {
       this.x -= this.velocityX * deltaTime;
       // removal of enemies
       if (this.x < 0 - this.width) this.markedForDeletion = true;
+      if (this.frameTimer > this.frameInterval) {
+        if (this.frameX < this.maxFrame) this.frameX++;
+        else this.frameX = 0;
+        this.frameTimer = 0;
+      } else {
+        this.frameTimer += deltaTime;
+      }
     }
     draw(ctx) {
       //ctx.fillRect(this.x, this.y, this.width, this.height);
       ctx.drawImage(
         this.image,
-        0,
+        this.frameX * this.spriteWidth,
         0,
         this.spriteWidth,
         this.spriteHeight,
@@ -70,9 +89,65 @@ document.addEventListener("DOMContentLoaded", function () {
       this.width = this.spriteWidth * 0.5;
       this.height = this.spriteHeight * 0.5;
       this.x = this.game.width;
-      this.y = Math.random() * this.game.height;
+      this.y = this.game.height - this.height;
       this.image = worm;
       this.velocityX = Math.random() * 0.1 + 0.1;
+    }
+  }
+
+  class Ghost extends Enemy {
+    constructor(game) {
+      super(game);
+      this.spriteWidth = 261;
+      this.spriteHeight = 209;
+      this.width = this.spriteWidth * 0.5;
+      this.height = this.spriteHeight * 0.5;
+      this.x = this.game.width;
+      this.y = Math.random() * this.game.height * 0.6;
+      this.image = ghost;
+      this.velocityX = Math.random() * 0.2 + 0.1;
+      this.angle = 0;
+      this.curve = Math.random() * 3;
+    }
+    update(deltaTime) {
+      super.update(deltaTime);
+      this.y += Math.sin(this.angle) * this.curve;
+      this.angle += 0.02;
+    }
+    draw(ctx) {
+      ctx.save();
+      ctx.globalAlpha = 0.5;
+      super.draw(ctx);
+      ctx.restore();
+    }
+  }
+
+  class Spider extends Enemy {
+    constructor(game) {
+      super(game);
+      this.spriteWidth = 310;
+      this.spriteHeight = 175;
+      this.width = this.spriteWidth * 0.5;
+      this.height = this.spriteHeight * 0.5;
+      this.x = Math.random() * this.game.width;
+      this.y = 0 - this.height;
+      this.image = spider;
+      this.velocityX = 0;
+      this.velocityY = Math.random() * 0.1 + 0.1;
+      this.maxLength = Math.random() * this.game.height;
+    }
+    update(deltaTime) {
+      super.update(deltaTime);
+      if (this.y < 0 - this.height * 2) this.markedForDeletion = true;
+      this.y += this.velocityY * deltaTime;
+      if (this.y > this.maxLength) this.velocityY *= -1;
+    }
+    draw() {
+      ctx.beginPath();
+      ctx.moveTo(this.x + this.width * 0.5, 0);
+      ctx.lineTo(this.x + this.width * 0.5, this.y + 5);
+      ctx.stroke();
+      super.draw(ctx);
     }
   }
 
