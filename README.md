@@ -180,3 +180,4 @@ To fix this, copy that condition(removal of enemies) in Enemy's update and paste
 Since Spider class objects only move in the y axis, change the condition to if y is less than 0 minus the height multiplied by 2, delete them
 This will make sure that spiders are deleted as they leave the canvas and do not cause the enemies array to keep storing spiders
 Done!
+\*\*Found out why load event listener is not working, because i was using document instead of window event listener
